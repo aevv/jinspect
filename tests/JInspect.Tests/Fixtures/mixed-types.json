@@ -1,0 +1,5 @@
+[
+  {"value": "hello", "code": 200, "flag": true},
+  {"value": null, "code": 404, "flag": false},
+  {"value": 42, "code": null, "flag": "yes"}
+]

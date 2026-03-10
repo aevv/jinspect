@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/JInspect.Benchmarks/JInspect.Benchmarks.csproj" />
+    <Project Path="tests/JInspect.Tests/JInspect.Tests.csproj" />
+  </Folder>
+  <Project Path="JInspect.csproj" />
+</Solution>

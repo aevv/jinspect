@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "user": {
+      "name": "Alice",
+      "address": {
+        "city": "London",
+        "postcode": "SW1A 1AA"
+      }
+    },
+    "tags": ["admin", "active"]
+  },
+  {
+    "id": 2,
+    "user": {
+      "name": "Bob",
+      "address": {
+        "city": "Manchester",
+        "postcode": "M1 1AA"
+      }
+    },
+    "tags": ["user"]
+  }
+]
