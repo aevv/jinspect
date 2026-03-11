@@ -8,10 +8,17 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>jinspect</ToolCommandName>
     <PackageId>jinspect</PackageId>
-    <Version>0.1.0</Version>
-    <Description>CLI tool that infers the schema of JSON files by sampling their contents</Description>
+    <Version>0.2.0</Version>
+    <Description>CLI tool that infers the schema of JSON files by sampling, with interactive jq query builder</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/aevv/jinspect</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/aevv/jinspect</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="tests\**" />
