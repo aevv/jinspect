@@ -38,3 +38,14 @@ tasks:
     preconditions:
       - sh: '[ -n "{{.NUGET_API_KEY}}" ]'
         msg: "NUGET_API_KEY is not set"
+
+  release:
+    desc: Create a GitHub release from the version in the csproj
+    vars:
+      VERSION:
+        sh: grep -oP '(?<=<Version>).*(?=</Version>)' JInspect.csproj
+    cmds:
+      - gh release create v{{.VERSION}} --title "v{{.VERSION}}" --generate-notes
+    preconditions:
+      - sh: '! gh release view v{{.VERSION}} > /dev/null 2>&1'
+        msg: "Release v{{.VERSION}} already exists"
