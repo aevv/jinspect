@@ -1,0 +1,40 @@
+version: "3"
+
+vars:
+  NUPKG_DIR: ./nupkg
+
+tasks:
+  default:
+    desc: List available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  bench:
+    desc: Run benchmarks
+    cmds:
+      - dotnet run -c Release --project tests/JInspect.Benchmarks
+
+  build:
+    desc: Build the project
+    cmds:
+      - dotnet build
+
+  test:
+    desc: Run all tests
+    cmds:
+      - dotnet test
+
+  pack:
+    desc: Pack the NuGet package
+    cmds:
+      - dotnet pack -c Release -o {{.NUPKG_DIR}}
+
+  publish:
+    desc: Pack and publish to NuGet
+    deps: [test, pack]
+    cmds:
+      - dotnet nuget push {{.NUPKG_DIR}}/*.nupkg --api-key {{.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    preconditions:
+      - sh: '[ -n "{{.NUGET_API_KEY}}" ]'
+        msg: "NUGET_API_KEY is not set"
