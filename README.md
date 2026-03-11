@@ -7,6 +7,7 @@ Given a JSON file, jinspect will tell you:
 - Which fields are optional (with presence counts)
 - Array length ranges
 - Sample values for leaf fields
+- Interactively build jq queries from the inferred schema
 
 ## Install
 
@@ -34,6 +35,7 @@ jinspect <FILE> [options]
 | `-d`, `--max-depth` | 10 | Maximum nesting depth to traverse |
 | `--inner-sample` | 5 | Number of elements to sample in nested arrays |
 | `-f`, `--fuzzy` | off | Fuzzy-match the filename (searches current directory recursively for `.json` files) |
+| `-q`, `--query` | off | Interactively build a jq query from the inferred schema |
 
 **Examples:**
 
@@ -51,7 +53,30 @@ jinspect config.json -d 3
 jinspect orders -f
 ```
 
-<!-- screenshot -->
+## Interactive jq query builder
+
+Use `--query` to navigate the inferred schema and select fields. jinspect outputs a ready-to-run jq command.
+
+```sh
+# Build a jq query interactively
+jinspect data.json -q
+
+# Run the generated query directly
+$(jinspect data.json -q)
+
+# Combine with fuzzy matching
+$(jinspect orders -fq)
+```
+
+The interactive tree supports:
+- **↑↓** / **jk** to navigate
+- **→** / **Enter** to expand nodes
+- **←** to collapse
+- **Space** to toggle field selection
+- **a** to select all, **n** to clear
+- **Esc** / **q** to confirm and output the jq command
+
+All UI output goes to stderr, so only the jq command reaches stdout — making it safe for piping and subshells.
 
 ## License
 
