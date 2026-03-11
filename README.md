@@ -21,6 +21,20 @@ Or clone and build from source:
 dotnet build
 ```
 
+## Development
+
+This project uses [Task](https://taskfile.dev) as a task runner. Install it with `winget install Task.Task`, `brew install go-task`, or see [taskfile.dev/installation](https://taskfile.dev/installation).
+
+```sh
+task          # list available tasks
+task build    # build the project
+task test     # run all tests
+task bench    # run benchmarks
+task pack     # create NuGet package
+task publish  # test, pack, and publish to NuGet (requires NUGET_API_KEY)
+task release  # create a GitHub release from the version in the csproj
+```
+
 ## Usage
 
 ```
