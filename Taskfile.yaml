@@ -33,17 +33,17 @@ tasks:
   publish:
     desc: Pack and publish to NuGet
     deps: [test, pack]
-    cmds:
-      - dotnet nuget push {{.NUPKG_DIR}}/*.nupkg --api-key {{.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
     preconditions:
       - sh: '[ -n "{{.NUGET_API_KEY}}" ]'
         msg: "NUGET_API_KEY is not set"
+    cmds:
+      - dotnet nuget push {{.NUPKG_DIR}}/*.nupkg --api-key {{.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
   release:
     desc: Create a GitHub release from the version in the csproj
     vars:
       VERSION:
-        sh: grep -oP '(?<=<Version>).*(?=</Version>)' JInspect.csproj
+        sh: powershell -NoProfile -Command "([xml](Get-Content JInspect.csproj)).Project.PropertyGroup.Version"
     cmds:
       - gh release create v{{.VERSION}} --title "v{{.VERSION}}" --generate-notes
     preconditions:

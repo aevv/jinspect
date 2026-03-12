@@ -196,25 +196,7 @@ public class TreeNavigator
             var hasKids = HasChildren(node);
             var isExpanded = _expanded.Contains(node);
 
-            var indent = new string(' ', node.Depth * 2);
-            var checkbox = isSelected ? "[green]■[/]" : "[dim]□[/]";
-            var expandIcon = hasKids
-                ? (isExpanded ? "[dim]▼[/]" : "[dim]►[/]")
-                : " ";
-
-            var types = string.Join("|", node.Schema.ObservedTypes);
-            var color = node.Schema.ObservedTypes.Contains("Object") ? "cyan"
-                : node.Schema.ObservedTypes.Contains("Array") ? "yellow"
-                : "green";
-
-            var meta = BuildMeta(node);
-            var cursorMark = isCursor ? "[bold white on blue]" : "";
-            var cursorEnd = isCursor ? "[/]" : "";
-
-            var displayName = node.Name == "[item]" ? "[]" : Markup.Escape(node.Name);
-
-            rows.Add(new Markup(
-                $"{indent}{checkbox} {expandIcon} {cursorMark}[{color}]{displayName}[/]: [{color}]{types}[/]{meta}{cursorEnd}"));
+            rows.Add(new Markup(BuildRowMarkup(node, isCursor, isSelected, hasKids, isExpanded)));
         }
 
         if (_visible.Count > maxVisible)
@@ -236,6 +218,28 @@ public class TreeNavigator
             rows.Add(new Markup("[dim]no fields selected[/]"));
 
         return new Rows(rows);
+    }
+
+    internal static string BuildRowMarkup(FlatNode node, bool isCursor, bool isSelected, bool hasChildren, bool isExpanded)
+    {
+        var indent = new string(' ', node.Depth * 2);
+        var checkbox = isSelected ? "[green]x[/]" : "[dim]o[/]";
+        var expandIcon = hasChildren
+            ? (isExpanded ? "[dim]v[/]" : "[dim]>[/]")
+            : " ";
+
+        var types = string.Join("|", node.Schema.ObservedTypes);
+        var color = node.Schema.ObservedTypes.Contains("Object") ? "cyan"
+            : node.Schema.ObservedTypes.Contains("Array") ? "yellow"
+            : "green";
+
+        var meta = BuildMeta(node);
+        var cursorMark = isCursor ? "[bold white on blue]" : "";
+        var cursorEnd = isCursor ? "[/]" : "";
+
+        var displayName = node.Name == "[item]" ? "[[]]" : Markup.Escape(node.Name);
+
+        return $"{indent}{checkbox} {expandIcon} {cursorMark}[{color}]{displayName}[/]: [{color}]{types}[/]{meta}{cursorEnd}";
     }
 
     private static string BuildMeta(FlatNode node)
