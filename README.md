@@ -1,8 +1,8 @@
 # jinspect
 
-A command-line tool that infers the schema of JSON files by sampling their contents. Useful for quickly understanding the shape of large or unfamiliar JSON datasets without reading them manually.
+A command-line tool that infers the schema of JSON files by sampling their contents. Useful for quickly understanding the shape of large or unfamiliar JSON datasets without reading them manually. Accepts a file path or piped input from stdin.
 
-Given a JSON file, jinspect will tell you:
+Given a JSON file or piped JSON, jinspect will tell you:
 - What fields exist and their types
 - Which fields are optional (with presence counts)
 - Array length ranges
@@ -38,8 +38,10 @@ task release  # create a GitHub release from the version in the csproj
 ## Usage
 
 ```
-jinspect <FILE> [options]
+jinspect [FILE] [options]
 ```
+
+When `FILE` is omitted, jinspect reads JSON from stdin.
 
 **Options:**
 
@@ -65,6 +67,12 @@ jinspect config.json -d 3
 
 # Fuzzy-match a filename
 jinspect orders -f
+
+# Pipe JSON from another command
+curl -s https://api.example.com/data | jinspect
+
+# Pipe with options
+cat data.json | jinspect -s 100 -d 5
 ```
 
 ## Interactive jq query builder
@@ -91,6 +99,8 @@ The interactive tree supports:
 - **Esc** / **q** to confirm and output the jq command
 
 All UI output goes to stderr, so only the jq command reaches stdout — making it safe for piping and subshells.
+
+Note: `-q` is not available when reading from stdin, since the interactive UI requires terminal input.
 
 ## License
 

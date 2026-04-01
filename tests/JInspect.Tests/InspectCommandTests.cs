@@ -246,4 +246,57 @@ public sealed class InspectCommandTests : IDisposable
         Assert.Equal(1, exit);
         Assert.Contains("No file found", _console.Output);
     }
+
+    private int RunFromStdin(string json, bool query = false)
+    {
+        var reader = new StringReader(json);
+        var command = new InspectCommand(_console, reader);
+        var settings = new InspectSettings { Query = query };
+        return command.Run(settings);
+    }
+
+    [Fact]
+    public void Stdin_SimpleObject_ShowsSchema()
+    {
+        var exit = RunFromStdin("""{"name":"Alice","age":30}""");
+
+        Assert.Equal(0, exit);
+        var output = _console.Output;
+        Assert.Contains("<stdin>", output);
+        Assert.Contains("name", output);
+        Assert.Contains("age", output);
+        Assert.Contains("String", output);
+        Assert.Contains("Integer", output);
+    }
+
+    [Fact]
+    public void Stdin_Array_ShowsElementCountAndFields()
+    {
+        var exit = RunFromStdin("""[{"id":1,"val":"a"},{"id":2,"val":"b"}]""");
+
+        Assert.Equal(0, exit);
+        var output = _console.Output;
+        Assert.Contains("Array with", output);
+        Assert.Contains("2", output);
+        Assert.Contains("id", output);
+        Assert.Contains("val", output);
+    }
+
+    [Fact]
+    public void Stdin_InvalidJson_ReturnsExitCode1()
+    {
+        var exit = RunFromStdin("not valid json {{{");
+
+        Assert.Equal(1, exit);
+        Assert.Contains("Invalid JSON", _console.Output);
+    }
+
+    [Fact]
+    public void Stdin_QueryMode_ReturnsExitCode1()
+    {
+        var exit = RunFromStdin("""{"a":1}""", query: true);
+
+        Assert.Equal(1, exit);
+        Assert.Contains("Interactive query mode (-q) is not supported with piped input", _console.Output);
+    }
 }

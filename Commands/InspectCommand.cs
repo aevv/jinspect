@@ -10,8 +10,8 @@ namespace JInspect.Commands;
 
 public class InspectSettings : CommandSettings
 {
-    [CommandArgument(0, "<FILE>")]
-    [Description("Path to the JSON file to inspect")]
+    [CommandArgument(0, "[FILE]")]
+    [Description("Path to the JSON file to inspect (omit to read from stdin)")]
     public string FilePath { get; set; } = "";
 
     [CommandOption("-s|--sample")]
@@ -35,7 +35,7 @@ public class InspectSettings : CommandSettings
     public bool Query { get; set; }
 }
 
-public class InspectCommand(IAnsiConsole console) : Command<InspectSettings>
+public class InspectCommand(IAnsiConsole console, TextReader? stdinReader = null) : Command<InspectSettings>
 {
     public InspectCommand() : this(AnsiConsole.Console) { }
 
@@ -48,20 +48,55 @@ public class InspectCommand(IAnsiConsole console) : Command<InspectSettings>
             ? AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) })
             : console;
 
-        var filePath = FileResolver.Resolve(settings.FilePath, settings.Fuzzy, output);
-        if (filePath is null)
+        var readingStdin = string.IsNullOrEmpty(settings.FilePath);
+
+        if (readingStdin)
         {
-            output.MarkupLine($"[red]No file found matching: {Markup.Escape(settings.FilePath)}[/]");
-            return 1;
+            var isRedirected = stdinReader is not null || Console.IsInputRedirected;
+            if (!isRedirected)
+            {
+                console.MarkupLine("[red]No file specified. Provide a file path or pipe JSON via stdin.[/]");
+                return 1;
+            }
+
+            if (settings.Query)
+            {
+                console.MarkupLine("[red]Interactive query mode (-q) is not supported with piped input.[/]");
+                return 1;
+            }
         }
 
-        output.MarkupLine($"[bold]Analyzing: {Markup.Escape(Path.GetRelativePath(Directory.GetCurrentDirectory(), filePath))}[/]");
+        string? filePath = null;
+        if (!readingStdin)
+        {
+            filePath = FileResolver.Resolve(settings.FilePath, settings.Fuzzy, output);
+            if (filePath is null)
+            {
+                output.MarkupLine($"[red]No file found matching: {Markup.Escape(settings.FilePath)}[/]");
+                return 1;
+            }
+
+            output.MarkupLine($"[bold]Analyzing: {Markup.Escape(Path.GetRelativePath(Directory.GetCurrentDirectory(), filePath))}[/]");
+        }
+        else
+        {
+            output.MarkupLine("[bold]Analyzing: <stdin>[/]");
+        }
 
         JsonDocument doc;
         try
         {
-            using var stream = File.OpenRead(filePath);
-            doc = JsonDocument.Parse(stream);
+            if (readingStdin)
+            {
+                var reader = stdinReader ?? Console.In;
+                var json = reader.ReadToEnd();
+                doc = JsonDocument.Parse(json);
+            }
+            else
+            {
+                using var stream = File.OpenRead(filePath!);
+                doc = JsonDocument.Parse(stream);
+            }
         }
         catch (JsonException ex)
         {
@@ -109,7 +144,7 @@ public class InspectCommand(IAnsiConsole console) : Command<InspectSettings>
                 var query = JqQueryBuilder.Build(selections, rootIsArray);
 
                 var escapedQuery = query.Replace("'", "'\\''");
-                var quotedPath = filePath.Contains(' ') ? $"'{filePath}'" : filePath;
+                var quotedPath = filePath!.Contains(' ') ? $"'{filePath}'" : filePath;
                 var fullCommand = $"jq '{escapedQuery}' {quotedPath}";
 
                 Console.Out.Write(fullCommand);
