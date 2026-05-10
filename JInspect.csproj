@@ -8,7 +8,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>jinspect</ToolCommandName>
     <PackageId>jinspect</PackageId>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Description>CLI tool that infers the schema of JSON files by sampling, with interactive jq query builder</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
