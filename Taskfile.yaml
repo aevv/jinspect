@@ -25,6 +25,23 @@ tasks:
     cmds:
       - dotnet test
 
+  fixtures:
+    desc: List available fixtures
+    silent: true
+    cmds:
+      - powershell -NoProfile -Command "Get-ChildItem tests/JInspect.Tests/Fixtures -Filter *.json | Select-Object -ExpandProperty BaseName"
+
+  run:
+    desc: "Run jinspect against a fixture (usage: task run -- <fixture-name> [-q])"
+    cmds:
+      - dotnet run --project JInspect.csproj -- tests/JInspect.Tests/Fixtures/{{.CLI_ARGS}}.json
+
+  run:query:
+    desc: "Print the command to run jinspect against a fixture in query mode (usage: task run:query -- <fixture-name>)"
+    silent: true
+    cmds:
+      - powershell -NoProfile -Command "Write-Host 'dotnet run --project JInspect.csproj -- tests/JInspect.Tests/Fixtures/{{.CLI_ARGS}}.json -q'"
+
   pack:
     desc: Pack the NuGet package
     cmds:

@@ -37,7 +37,7 @@ public class TreeNavigator
 
                 while (true)
                 {
-                    var key = Console.ReadKey(intercept: true);
+                    var key = TerminalInput.ReadKey();
 
                     switch (key.Key)
                     {

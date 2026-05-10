@@ -292,11 +292,13 @@ public sealed class InspectCommandTests : IDisposable
     }
 
     [Fact]
-    public void Stdin_QueryMode_ReturnsExitCode1()
+    public void Stdin_QueryMode_NonWindows_ReturnsExitCode1()
     {
+        if (OperatingSystem.IsWindows()) return;
+
         var exit = RunFromStdin("""{"a":1}""", query: true);
 
         Assert.Equal(1, exit);
-        Assert.Contains("Interactive query mode (-q) is not supported with piped input", _console.Output);
+        Assert.Contains("only supported on Windows", _console.Output);
     }
 }

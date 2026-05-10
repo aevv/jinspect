@@ -59,9 +59,9 @@ public class InspectCommand(IAnsiConsole console, TextReader? stdinReader = null
                 return 1;
             }
 
-            if (settings.Query)
+            if (settings.Query && !OperatingSystem.IsWindows())
             {
-                console.MarkupLine("[red]Interactive query mode (-q) is not supported with piped input.[/]");
+                console.MarkupLine("[red]Interactive query mode (-q) with piped input is currently only supported on Windows.[/]");
                 return 1;
             }
         }
@@ -84,13 +84,14 @@ public class InspectCommand(IAnsiConsole console, TextReader? stdinReader = null
         }
 
         JsonDocument doc;
+        string? bufferedJson = null;
         try
         {
             if (readingStdin)
             {
                 var reader = stdinReader ?? Console.In;
-                var json = reader.ReadToEnd();
-                doc = JsonDocument.Parse(json);
+                bufferedJson = reader.ReadToEnd();
+                doc = JsonDocument.Parse(bufferedJson);
             }
             else
             {
@@ -143,9 +144,15 @@ public class InspectCommand(IAnsiConsole console, TextReader? stdinReader = null
                 var selections = navigator.Run();
                 var query = JqQueryBuilder.Build(selections, rootIsArray);
 
+                if (Console.IsOutputRedirected)
+                {
+                    return RunJq(query, filePath, bufferedJson, output);
+                }
+
                 var escapedQuery = query.Replace("'", "'\\''");
-                var quotedPath = filePath!.Contains(' ') ? $"'{filePath}'" : filePath;
-                var fullCommand = $"jq '{escapedQuery}' {quotedPath}";
+                var fullCommand = filePath is null
+                    ? $"jq '{escapedQuery}'"
+                    : $"jq '{escapedQuery}' {(filePath.Contains(' ') ? $"'{filePath}'" : filePath)}";
 
                 Console.Out.Write(fullCommand);
             }
@@ -156,6 +163,39 @@ public class InspectCommand(IAnsiConsole console, TextReader? stdinReader = null
         }
 
         return 0;
+    }
+
+    private static int RunJq(string filter, string? filePath, string? bufferedJson, IAnsiConsole errorOutput)
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo("jq")
+        {
+            RedirectStandardInput = filePath is null,
+            RedirectStandardOutput = false,
+            RedirectStandardError = false,
+            UseShellExecute = false,
+        };
+        psi.ArgumentList.Add(filter);
+        if (filePath is not null) psi.ArgumentList.Add(filePath);
+
+        try
+        {
+            using var proc = System.Diagnostics.Process.Start(psi)
+                ?? throw new InvalidOperationException("Failed to start jq");
+
+            if (filePath is null && bufferedJson is not null)
+            {
+                proc.StandardInput.Write(bufferedJson);
+                proc.StandardInput.Close();
+            }
+
+            proc.WaitForExit();
+            return proc.ExitCode;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            errorOutput.MarkupLine("[red]jq not found on PATH. Install jq to pipe filtered output.[/]");
+            return 1;
+        }
     }
 
     private void RenderSchema(SchemaNode node, string indent, int parentCount)
